@@ -20,20 +20,35 @@ class ExternalSort:
     #! Método completo
     def external_sort(self, heap_path: str, output_path: str, sort_key_index: int) -> dict:
         start_total = time.time()
+        
         # Fase 1
         start_p1 = time.time()
-        run_paths = self.generate_runs(heap_path, sort_key_index)
+        runs = self.generate_runs(heap_path, sort_key_index)
         time_phase1 = time.time() - start_p1
         
         # Fase 2
         start_p2 = time.time()
-        self.multiway_merge(run_paths, output_path, sort_key_index)
+        k = self.B - 1  # Capacidad real de mezcla
+        
+        intermediate_count = 0
+        
+        while len(runs) > k:
+            batch = runs[:k]
+            runs = runs[k:]
+            
+            intermediate_path = f"temp_runs/inter_{intermediate_count}.bin"
+            self.multiway_merge(batch, intermediate_path, sort_key_index)
+            
+            runs.append(intermediate_path)
+            intermediate_count += 1
+            
+        self.multiway_merge(runs, output_path, sort_key_index)
         time_phase2 = time.time() - start_p2
         
         end_total = time.time()
 
         return {
-            'runs_generated': len(run_paths),
+            'runs_generated': len(runs),
             'pages_read': self.pages_read,
             'pages_written': self.pages_written,
             'time_phase1_sec': round(time_phase1, 4),
@@ -90,44 +105,39 @@ class ExternalSort:
     def multiway_merge(self, run_paths: list[str], output_path: str, sort_key_index: int):
         min_heap = []
         run_files = [open(path, 'rb') for path in run_paths] # Todos los archivos de runs
-        
-        # Buffer de salida
+        run_iters = []
         output_buffer = []
         
-        # Insertar el primer registro de cada run en el heap
-        # (valor_llave, indice_del_run, registro_completo)
         for i, f in enumerate(run_files):
             first_page = f.read(self.page_size)
             if first_page:
                 self.pages_read += 1
                 records = self._extract_records(first_page)
                 if records:
-                    # Insertamos el primer registro y guardamos el resto en un iterador por run
                     first_rec = records.pop(0)
                     heapq.heappush(min_heap, (first_rec[sort_key_index], i, first_rec))
-                    
-                    # Generador para leer registros del archivo conforme se necesiten
-                    setattr(self, f"run_iter_{i}", self._run_record_generator(f, records))
+                    run_iters.append(self._run_record_generator(f, records))
+                else:
+                    run_iters.append(iter([]))
+            else:
+                run_iters.append(iter([]))
 
-        # Extraer el menor e insertar el siguiente
         with open(output_path, 'wb') as out_f:
             while min_heap:
                 val, run_idx, record = heapq.heappop(min_heap)
-                
-                output_buffer.append(record) # Agrego al buffer de salida
+                output_buffer.append(record)
                 
                 if len(output_buffer) == self.records_per_page:
-                    # Si se llena, escribir a disco
                     self._write_binary_page(out_f, output_buffer)
-                    self.pages_written += 1 # Escritura de página final
+                    self.pages_written += 1
                     output_buffer = []
                 
                 try:
-                    next_rec = next(getattr(self, f"run_iter_{run_idx}"))
                     # Cargar el siguiente registro del run de donde vino
+                    next_rec = next(run_iters[run_idx])
                     heapq.heappush(min_heap, (next_rec[sort_key_index], run_idx, next_rec))
                 except StopIteration:
-                    pass 
+                    pass
 
             # Registros restantes -> buffer de salida
             if output_buffer:
