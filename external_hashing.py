@@ -98,11 +98,11 @@ class ExternalHashing:
         for path in partitionpaths:
             partitionpages = os.path.getsize(path) // self.pagesize
 
-            if partitionpages > self.B:
-                raise MemoryError(
-                    f"La partición {path} no cabe en RAM durante la Fase 2 "
-                    f"({partitionpages} páginas > B={self.B})."
-                )
+            #if partitionpages > self.B:
+            #    raise MemoryError(
+            #        f"La partición {path} no cabe en RAM durante la Fase 2 "
+            #        f"({partitionpages} páginas > B={self.B})."
+            #    )
 
             partialcount = {}
 
@@ -169,6 +169,7 @@ class ExternalHashing:
         filehandle.write(pagebuffer)
 
 
+"""
 if __name__ == "__main__":
     PAGESIZE = 4096
     BUFFERSIZE = 65536
@@ -186,3 +187,4 @@ if __name__ == "__main__":
     )
 
     print(json.dumps(result, indent=4, sort_keys=True))
+"""

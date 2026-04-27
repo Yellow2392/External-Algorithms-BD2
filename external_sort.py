@@ -190,14 +190,16 @@ class ExternalSort:
             for r in records:
                 yield r
 
+"""
 # Configuración del Laboratorio 
 EMPLOYEE_RECORD_FORMAT = 'i 10s 30s 30s 1s 10s' 
 
 # employee_id(int),department_id (char[4]),from_date(char[10]),to_date(char[10])
 DEPARTMENT_RECORD_FORMAT = 'i 4s 10s 10s' 
 
-SORTER = ExternalSort(record_format=EMPLOYEE_RECORD_FORMAT, page_size=4096, buffer_size=65536)
+SORTER = ExternalSort(record_format=DEPARTMENT_RECORD_FORMAT, page_size=4096, buffer_size=65536)
 
-out = SORTER.external_sort("data/employee.bin", "data/employee_sorted", sort_key_index=5)
+out = SORTER.external_sort("data/deparment_employee.bin", "data/deparment_employee_sorted", sort_key_index=5)
 
 print(json.dumps(out, indent=4, sort_keys=True))
+"""

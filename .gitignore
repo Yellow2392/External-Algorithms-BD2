@@ -1,1 +1,3 @@
-/pdfs
+/pdfs/
+/__pycache__/
+/temp_runs/
