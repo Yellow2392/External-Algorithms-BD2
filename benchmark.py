@@ -27,12 +27,11 @@ def run_benchmarks():
         res_h = hasher.externalhashgroupby("data/deparment_employee.bin", groupkeyindex=INDEX_FROM_DATE)
         res_h['buffer_label'] = f"{b_size//1024} KB"
         results_hash.append(res_h)
-        
-        print(f"SORT | Runs: {res_s['runs_generated']} | Time: {res_s['time_total_sec']}s | I/O: {res_s['pages_read'] + res_s['pages_written']}")
-        print(f"HASH | Part: {res_h['partitionscreated']} | Time: {res_h['timetotalsec']}s | I/O: {res_h['pagesread'] + res_h['pageswritten']}")
 
-    plot_performance(results_sort, results_hash)
+        print(f"SORT | Runs: {res_s['runs_generated']} | P1: {res_s['time_phase1_sec']}s | P2: {res_s['time_phase2_sec']}s | Total: {res_s['time_total_sec']}s | I/O: {res_s['pages_read'] + res_s['pages_written']}")
+        print(f"HASH | Part: {res_h['partitionscreated']} | P1: {res_h['timephase1sec']}s | P2: {res_h['timephase2sec']}s | Total: {res_h['timetotalsec']}s | I/O: {res_h['pagesread'] + res_h['pageswritten']}")
     
+    plot_performance(results_sort, results_hash)
     return results_sort, results_hash
 
 def plot_performance(sort_data, hash_data):
